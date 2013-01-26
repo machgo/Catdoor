@@ -1,0 +1,45 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+	<title>Balous Catdoor</title> 
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+
+	<style type="text/css" media="screen">
+			.containing-element .ui-slider-switch { width: 12em; }
+	</style>
+
+	<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+
+	<script>
+	</script>
+
+</head> 
+<body> 
+
+<div data-role="page">
+
+	<div data-role="header">
+		<h1>Balous Catdoor</h1>
+	</div><!-- /header -->
+
+	<div data-role="content">	
+		<h2>Status</h2>
+		<p>Balou ist draussen seit 12:04 Uhr</p>
+		<p>Catdoor ist offen</p>
+		<p>Nach Plan ist Catdoor offen von 07:00 Uhr bis 16:00 Uhr</p>
+
+		<h2>Einstellungen</h2>		
+		<div class="containing-element">
+			<select name="flip-min" id="flip-min" data-role="slider">
+				<option value="off">Geschlossen</option>
+				<option value="on">Offen</option>
+			</select>
+		</div>
+	</div><!-- /content -->
+
+</div><!-- /page -->
+
+</body>
+</html>
