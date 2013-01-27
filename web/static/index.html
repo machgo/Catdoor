@@ -13,6 +13,118 @@
 	<script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
 
 	<script>
+
+		function GetFormatedTimeString(currentTime)
+		{
+			var hours = currentTime.getHours();
+			var minutes = currentTime.getMinutes();
+
+			if (minutes < 10)
+				minutes = "0" + minutes;
+			if (hours < 10)
+				hours = "0" + hours;
+
+			return hours + ":" + minutes
+		}
+
+		function UpdateBalou()
+		{
+			$.ajax(
+			{
+				type: "GET",
+				url: "/balou",
+				cache: false
+			}).done(function(json)
+			{
+				var date = new Date(json.last_update);
+
+				if (json.balou_state == "indoor")
+				{
+					$("#balou-state").html("Balou ist zuhause seit ");
+				}
+				else if (json.balou_state == "outdoor")
+				{
+					$("#balou-state").html("Balou ist draussen seit ");
+				}
+				$("#balou-state").append(GetFormatedTimeString(date) + " Uhr");
+			});
+		}
+
+		function UpdateDoor()
+		{
+			$.ajax(
+			{
+				type: "GET",
+				url: "/door",
+				cache: false
+			}).done(function(json)
+			{
+				var date = new Date(json.last_update);
+
+				if (json.door_state == "locked")
+				{
+					$("#catdoor-state").html("Catdoor ist geschlossen seit ");
+				}
+				else if (json.door_state == "unlocked")
+				{
+					$("#catdoor-state").html("Catdoor ist offen seit ");
+				}
+				$("#catdoor-state").append(GetFormatedTimeString(date) + " Uhr");
+
+				$("#door-flip").val(json.door_state).slider('refresh');
+			});
+		}
+
+		function UpdateSchedule()
+		{
+			$.ajax(
+			{
+				type: "GET",
+				url: "/schedule",
+				cache: false
+			}).done(function(json)
+			{
+				var opentime = new Date(json.opentime);
+				var closetime = new Date(json.closetime);
+
+				$("#schedule").html("Nach Plan ist Catdoor heute von ");
+				$("#schedule").append(GetFormatedTimeString(opentime) + " Uhr");
+				$("#schedule").append(" bis " + GetFormatedTimeString(closetime) + " Uhr offen.");
+			});
+		}
+
+		function PutDoor()
+		{
+			$.ajax(
+			{
+				type: "PUT",
+				url: "/door",
+				data: { door_state: $("#door-flip").val() },
+				dataType: "json"
+			}).done(function(json)
+			{
+				UpdateDoor();
+			});
+		}
+
+		$(document).ready(function()
+		{
+			setInterval(function()
+			{
+				UpdateBalou();
+				UpdateDoor();
+				UpdateSchedule();
+			}, 30000);
+
+			$("#door-flip").bind("change", function(event, ui)
+			{
+				PutDoor();
+			});
+
+			UpdateBalou();
+			UpdateDoor();
+			UpdateSchedule();
+		});
 	</script>
 
 </head> 
@@ -26,15 +138,15 @@
 
 	<div data-role="content">	
 		<h2>Status</h2>
-		<p>Balou ist draussen seit 12:04 Uhr</p>
-		<p>Catdoor ist offen</p>
-		<p>Nach Plan ist Catdoor offen von 07:00 Uhr bis 16:00 Uhr</p>
+		<p id="balou-state"></p>
+		<p id="catdoor-state"></p>
+		<p id="schedule"></p>
 
 		<h2>Einstellungen</h2>		
 		<div class="containing-element">
-			<select name="flip-min" id="flip-min" data-role="slider">
-				<option value="off">Geschlossen</option>
-				<option value="on">Offen</option>
+			<select name="flip-min" id="door-flip" data-role="slider">
+				<option value="locked">Geschlossen</option>
+				<option value="unlocked">Offen</option>
 			</select>
 		</div>
 	</div><!-- /content -->
