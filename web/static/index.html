@@ -107,6 +107,14 @@
 			});
 		}
 
+		$( document ).bind( 'mobileinit', function()
+		{
+  			$.mobile.loader.prototype.options.text = "loading";
+			$.mobile.loader.prototype.options.textVisible = false;
+			$.mobile.loader.prototype.options.theme = "a";
+			$.mobile.loader.prototype.options.html = "";
+		});
+
 		$(document).ready(function()
 		{
 			setInterval(function()
@@ -114,16 +122,18 @@
 				UpdateBalou();
 				UpdateDoor();
 				UpdateSchedule();
-			}, 30000);
+			}, 60000);
 
 			$("#door-flip").bind("change", function(event, ui)
 			{
 				PutDoor();
 			});
 
+			$.mobile.loading( 'show' );
 			UpdateBalou();
 			UpdateDoor();
 			UpdateSchedule();
+			$.mobile.loading( 'hide' );
 		});
 	</script>
 
