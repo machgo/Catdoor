@@ -27,7 +27,10 @@ class WatchdogThread(threading.Thread):
 				self.hardware.pendingSerialValue = self.hardware.ser.readLine()
 				self.hardware.pendingSerialBool = True
 
-			self.hardware.motionDetectedBool = GPIO.input(self.hardware.pin_irsensor_in)
+			if GPIO.input(self.hardware.pin_irsensor_in):
+				self.hardware.motionDetectedBool = True
+				print datetime.datetime.now()
+				print "irsensor in is HIGH"
 
 			if self.exitFlag == True:
 				break
@@ -116,6 +119,8 @@ class Hardware:
 		time.sleep(delay)
 
 	def openDoor(self):
+		print datetime.datetime.now()
+		print "open door"
 		self.awakeStepper()
 		multi = 7
 		GPIO.output(self.pin_direction_out, GPIO.HIGH)
@@ -124,12 +129,26 @@ class Hardware:
 		self.sleepStepper();
 
 	def closeDoor(self):
+		print datetime.datetime.now()
+		print "close door"
 		self.doShortBeeps(5)
 		self.awakeStepper()
-		multi = 7
+		steps = 5950
 		GPIO.output(self.pin_direction_out, GPIO.LOW)
-		for i in range(0, multi*850):
+
+		for i in range(0, steps):
 			self.doStep(self.motor_delay)
+			if self.isMotionDetected():
+				self.doShortBeeps(2)
+				GPIO.output(self.pin_direction_out, GPIO.HIGH)
+				for j in range(0, i):
+					self.doStep(self.motor_delay)
+				time.sleep(2)
+				GPIO.output(self.pin_direction_out, GPIO.LOW)
+				for j in range(0, i):
+					self.doStep(self.motor_delay)
+
+
 		self.sleepStepper();
 		
 	def doShortBeeps(self, num):
@@ -137,7 +156,6 @@ class Hardware:
 			self.beep()
 
 	def beep(self):
-		print "beeping..."
 		GPIO.output(self.pin_buzzer_out, GPIO.HIGH)
 		time.sleep(0.1)
 		GPIO.output(self.pin_buzzer_out, GPIO.LOW)
@@ -148,7 +166,7 @@ class Hardware:
 
 	def isMotionDetected(self):
 		if self.motionDetectedBool:
-			self.motionDetectedBool = false
+			self.motionDetectedBool = False
 			return True;
 		else:
 			return False;
@@ -163,35 +181,3 @@ class Hardware:
 	def getPendingSerial(self):
 		self.pendingSerialBool = False
 		return self.pendingSerialValue
-
-
-blubb = Hardware()
-blubb.activateWatchdog()
-print datetime.datetime.now()
-print "stated watchdog"
-
-
-while True:
-	if blubb.isSerialPending():
-		print datetime.datetime.now()
-		print "tag detected"
-		detectedSerial = blubb.getPendingSerial()
-		print detectedSerial
-
-		if detectedSerial == '756_098100641037':
-			blubb.openDoor()
-			time.sleep(10)
-			blubb.closeDoor()
-
-	if blubb.isMotionDetected():
-		print datetime.datetime.now()
-		print "motion detected"
-		blubb.openDoor()
-		time.sleep(10)
-		blubb.closeDoor()
-
-	time.sleep(0.5)
-
-blubb.deactivateWatchdog()
-
-
