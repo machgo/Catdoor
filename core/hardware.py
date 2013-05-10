@@ -29,13 +29,11 @@ class WatchdogThread(threading.Thread):
 
 			if GPIO.input(self.hardware.pin_irsensor_in):
 				self.hardware.motionDetectedBool = True
-				print datetime.datetime.now()
-				print "irsensor in is HIGH"
 
 			if self.exitFlag == True:
 				break
 
-			time.sleep(0.5)
+			time.sleep(1)
 
 	def exit(self):
 		self.exitFlag = True
@@ -119,18 +117,14 @@ class Hardware:
 		time.sleep(delay)
 
 	def openDoor(self):
-		print datetime.datetime.now()
-		print "open door"
 		self.awakeStepper()
-		multi = 7
+		steps = 5950
 		GPIO.output(self.pin_direction_out, GPIO.HIGH)
-		for i in range(0, multi*850):
+		for i in range(0, steps):
 			self.doStep(self.motor_delay)
 		self.sleepStepper();
 
 	def closeDoor(self):
-		print datetime.datetime.now()
-		print "close door"
 		self.doShortBeeps(5)
 		self.awakeStepper()
 		steps = 5950
@@ -138,16 +132,6 @@ class Hardware:
 
 		for i in range(0, steps):
 			self.doStep(self.motor_delay)
-			if self.isMotionDetected():
-				self.doShortBeeps(2)
-				GPIO.output(self.pin_direction_out, GPIO.HIGH)
-				for j in range(0, i):
-					self.doStep(self.motor_delay)
-				time.sleep(2)
-				GPIO.output(self.pin_direction_out, GPIO.LOW)
-				for j in range(0, i):
-					self.doStep(self.motor_delay)
-
 
 		self.sleepStepper();
 		

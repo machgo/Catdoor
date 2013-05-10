@@ -1,39 +1,60 @@
 import hardware
 import datetime
 import time
+import db 
 
-blubb = hardware.Hardware()
-blubb.activateWatchdog()
-print datetime.datetime.now()
-print "stated watchdog"
+
+
+database = db.catdoorDB()
+
+if database.getDoorLockState():
+	print "Door is unlocked"
+else:
+	print "Door is locked"
+
+hardw = hardware.Hardware()
+hardw.activateWatchdog()
+database.writeLog("Watchdog started")
+
 
 
 while True:
 	try:
-		if blubb.isSerialPending():
-			print datetime.datetime.now()
-			print "tag detected"
-			detectedSerial = blubb.getPendingSerial()
-			print detectedSerial
+		now = datetime.datetime.now()
 
-			if detectedSerial == '756_098100641037':
-				blubb.openDoor()
-				time.sleep(10)
-				blubb.closeDoor()
+		if hardw.isSerialPending():
+			detectedSerial = hardw.getPendingSerial()
+			database.writeLog("Tag detected", "Serial: {}".format(detectedSerial))
 
-		if blubb.isMotionDetected():
-			print datetime.datetime.now()
-			print "motion detected"
-			blubb.openDoor()
+			#if detectedSerial == '756_098100641037': #for exact check of the chip-sn
+			hardw.openDoor()
+			database.writeLog("Door opened")
 			time.sleep(10)
-			while blubb.isMotionDetected():
+			while hardw.isMotionDetected():
 				time.sleep(5)
 
-			blubb.closeDoor()
+			hardw.closeDoor()
+			database.writeLog("Door closed")
+
+		if hardw.isMotionDetected(): 
+			if database.getDoorLockState():
+				database.writeLog("Motion detected", "Door is unlocked")
+				hardw.openDoor()
+				database.writeLog("Door opened")
+				time.sleep(10)
+				while hardw.isMotionDetected():
+					time.sleep(5)
+
+				hardw.closeDoor()
+				database.writeLog("Door closed")
+
+			else:
+				database.writeLog("Motion detected", "Door is locked")
 
 		time.sleep(0.5)
 	except (KeyboardInterrupt, SystemExit):
-		blubb.deactivateWatchdog()
+		hardw.deactivateWatchdog()
+		database.writeLog("Watchdog stopped")
 		break
 
 # blubb.deactivateWatchdog()
