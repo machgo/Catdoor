@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import os
 import hardware
 import datetime
 import time
@@ -18,19 +18,31 @@ class MyDaemon(Daemon):
             time.sleep(0.5)
             now = datetime.datetime.now()
 
-            if hardw.isSerialPending():
-                detectedSerial = hardw.getPendingSerial()
-                database.writeLog("Tag detected", "Serial: {}".format(detectedSerial))
+            # if hardw.isSerialPending():
+            #     detectedSerial = hardw.getPendingSerial()
+            #     database.writeLog("Tag detected", "Serial: {}".format(detectedSerial))
+            #
+            #     #if detectedSerial == '756_098100641037': #for exact check of the chip-sn
+            #     hardw.openDoor()
+            #     database.writeLog("Door opened")
+            #     time.sleep(10)
+            #     while hardw.isMotionDetected():
+            #         time.sleep(5)
+            #
+            #     hardw.closeDoor()
+            #     database.writeLog("Door closed")
+            # database.writeLog("checking motion")
 
-                #if detectedSerial == '756_098100641037': #for exact check of the chip-sn
-                hardw.openDoor()
-                database.writeLog("Door opened")
-                time.sleep(10)
-                while hardw.isMotionDetected():
-                    time.sleep(5)
-
-                hardw.closeDoor()
-                database.writeLog("Door closed")
+            if len(os.listdir("/opt/catdoor/camera/new/")):
+                if database.getDoorLockState():
+                    database.writeLog("Camera-Pic found")
+                    hardw.openDoor()
+                    database.writeLog("Door opened")
+                    time.sleep(10)
+                    hardw.closeDoor()
+                    hardw.resetMotionDetected()
+                    os.system('mv /opt/catdoor/camera/new/* /opt/catdoor/camera/old/')
+                    database.writeLog("Door closed")
 
             if hardw.isMotionDetected():
                 if database.getDoorLockState():
@@ -42,6 +54,7 @@ class MyDaemon(Daemon):
                         time.sleep(5)
 
                     hardw.closeDoor()
+                    hardw.resetMotionDetected()
                     database.writeLog("Door closed")
 
                 else:
@@ -50,9 +63,8 @@ class MyDaemon(Daemon):
             time.sleep(0.5)
 
 
-
 if __name__ == "__main__":
-    daemon = MyDaemon('/home/pi/catdoor/core/daemon-catdoor.pid')
+    daemon = MyDaemon('/opt/catdoor/core/daemon-catdoor.pid')
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
             database = db.catdoorDB()

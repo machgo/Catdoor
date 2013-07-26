@@ -1,32 +1,16 @@
 from ConfigParser import SafeConfigParser
 import threading
 import time
-import datetime
-import serial
 import RPi.GPIO as GPIO
-
-class CustomSerial(serial.Serial):
-    def readLine(self):
-        ret = self.read(1)
-        while self.inWaiting() > 0:
-            char = self.read(1)
-            ret += char
-            if char == '\r':
-                return ret
 
 class WatchdogThread(threading.Thread):
     def __init__(self, hardware):
         self.exitFlag = False
         self.hardware = hardware
-        self.ser = hardware.ser
         threading.Thread.__init__(self)
 
     def run(self):
         while True:
-            if self.hardware.ser.inWaiting() > 0:
-                self.hardware.pendingSerialValue = self.hardware.ser.readLine()
-                self.hardware.pendingSerialBool = True
-
             if GPIO.input(self.hardware.pin_irsensor_in):
                 self.hardware.motionDetectedBool = True
 
@@ -40,16 +24,12 @@ class WatchdogThread(threading.Thread):
 
 
 class Hardware:
-    ser = None
-    pendingSerialBool = False
-    pendingSerialValue = None
     motionDetectedBool = False
 
     def __init__(self):
 
         self.loadConfig()
         self.initializeHardware()
-        self.configureSerialReader()
 
     def loadConfig(self):
         parser = SafeConfigParser()
@@ -81,27 +61,7 @@ class Hardware:
         GPIO.output(self.pin_buzzer_out, GPIO.LOW)
         GPIO.setwarnings(True)
 
-    def configureSerialReader(self):
-        self.ser = CustomSerial(port='/dev/ttyAMA0', baudrate=9600, parity=serial.PARITY_NONE,	stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS)
-        self.ser.open()
 
-        print "\nchecking version..."
-        self.ser.write('VER\r')
-        time.sleep(0.1)
-        response = self.ser.readLine()
-        print "VERSION is {}\n".format(response)
-
-        print "setting up for fxd-b-tags..."
-        self.ser.write('SD2\r')
-        time.sleep(0.1)
-        response = self.ser.readLine()
-        print "set with response: \n{}\n".format(response)
-
-        print "measure frequency..."
-        self.ser.write('MOF\r')
-        time.sleep(0.1)
-        response = self.ser.readLine()
-        print "frequency: \n{}\n".format(response)
 
     def sleepStepper(self):
         GPIO.output(self.pin_sleep_out, GPIO.LOW)
@@ -144,9 +104,6 @@ class Hardware:
         GPIO.output(self.pin_buzzer_out, GPIO.LOW)
         time.sleep(0.05)
 
-    def isSerialPending(self):
-        return self.pendingSerialBool
-
     def isMotionDetected(self):
         if self.motionDetectedBool:
             self.motionDetectedBool = False
@@ -154,13 +111,12 @@ class Hardware:
         else:
             return False
 
+    def resetMotionDetected(self):
+        self.motionDetectedBool = False
+
     def activateWatchdog(self):
         self.workerThread = WatchdogThread(self)
         self.workerThread.start()
 
     def deactivateWatchdog(self):
         self.workerThread.exit()
-
-    def getPendingSerial(self):
-        self.pendingSerialBool = False
-        return self.pendingSerialValue
