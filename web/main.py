@@ -1,10 +1,7 @@
 from bottle import Bottle, run, static_file, request
-from pymongo import MongoClient
 import json
 import datetime
-
-connection = MongoClient('catdoor.home.balou.in', 27017)
-db = connection.catdoor
+import os
 
 app = Bottle()
 
@@ -13,38 +10,23 @@ app = Bottle()
 def hello():
     return static_file('index.html', 'static')
 
-
-@app.get('/schedule')
-def GetSchedule():
-    schedule = db.runtime.find_one({"name": "schedule"})
-    ret = {"opentime": unix_time_millis(schedule['opentime']),
-           "closetime": unix_time_millis(schedule['closetime'])}
-    return ret
-
-
-@app.get('/balou')
-def GetBalou():
-    balou = db.runtime.find_one({"name": "balou"})
-    ret = {"balou_state": balou['balou_state'],
-           "last_update": unix_time_millis(balou['last_update'])}
-    return ret
-
-
 @app.get('/door')
 def GetDoor():
-    door = db.runtime.find_one({"name": "door"})
-    ret = {"door_state": door['door_state'],
-           "last_update": unix_time_millis(door['last_update'])}
+    f = open("/opt/catdoor/runtime/doorlock.state")
+    state = f.read()
+    f.close()
+
+    ret = {"door_state": state}
     return ret
 
 
 @app.put('/door')
 def PutDoor():
-    door = db.runtime.find_one({"name": "door"})
-    door['door_state'] = request.forms.door_state
-    door['last_update'] = datetime.datetime.utcnow()
+    if request.forms.door_state == "locked":
+        os.system("python2 /opt/catdoor/tools/lockdoor.py")
+    else:
+        os.system("python2 /opt/catdoor/tools/unlockdoor.py")
 
-    db.runtime.save(door)
     return 0
 
 

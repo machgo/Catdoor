@@ -63,13 +63,12 @@
 
 				if (json.door_state == "locked")
 				{
-					$("#catdoor-state").html("Catdoor ist geschlossen seit ");
+					$("#catdoor-state").html("Catdoor ist geschlossen");
 				}
 				else if (json.door_state == "unlocked")
 				{
-					$("#catdoor-state").html("Catdoor ist offen seit ");
+					$("#catdoor-state").html("Catdoor ist offen");
 				}
-				$("#catdoor-state").append(GetFormatedTimeString(date) + " Uhr");
 
 				$("#door-flip").val(json.door_state).slider('refresh');
 			});
@@ -119,10 +118,10 @@
 		{
 			setInterval(function()
 			{
-				UpdateBalou();
+				// UpdateBalou();
 				UpdateDoor();
-				UpdateSchedule();
-			}, 60000);
+				// UpdateSchedule();
+			}, 10000);
 
 			$("#door-flip").bind("change", function(event, ui)
 			{
@@ -130,9 +129,9 @@
 			});
 
 			$.mobile.loading( 'show' );
-			UpdateBalou();
+			// UpdateBalou();
 			UpdateDoor();
-			UpdateSchedule();
+			// UpdateSchedule();
 			$.mobile.loading( 'hide' );
 		});
 	</script>

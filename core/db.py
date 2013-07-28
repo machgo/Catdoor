@@ -9,31 +9,34 @@ class catdoorDB:
         # return db
 
     def getDoorLockState(self):
-        # db = self.openConnection()
-        # runtime = db.runtime
-        # doc = runtime.find_one({"name": "schedule"})
-        #
-        # opentime = doc['opentime']
-        # closetime = doc['closetime']
-        # nowtime = datetime.datetime.utcnow()
-        #
-        # if opentime.time() < nowtime.time() and closetime.time() > nowtime.time():
-        #     return True
-        # else:
-        #     return False
-        return True
+        f = open("/opt/catdoor/runtime/doorlock.state")
+        state = f.read()
+        f.close()
+        if state == "unlocked":
+            return True
+        else:
+            return False
+        # return True
+        # scon = lite.connect("../db/catdoor.db")
+
+        # with con:
+        #     cur = con.cursor()
+        #     cur.execute("select value from settings where key = 'doorstate'")
+
+        #     data = cur.fetchone()
+            
+        #     if data[0] == "unlocked":
+        #         return True
+        #     else:
+        #         return False
 
     def writeLog(self, action, details='no details'):
-        # db = self.openConnection()
-        # logs = db.logs
-        #
-        # logentry = {"action": action,
-        #             "details": details,
-        #             "timestamp": datetime.datetime.utcnow()
-        # }
-        # logentry_id = logs.insert(logentry)
+        # con = lite.connect("../db/catdoor.db")
 
-        logging.basicConfig(filename='run.log', level=logging.DEBUG, format='%(asctime)s %(message)s')
+        # with con:
+        #     cur = con.cursor()
+        #     timeNow = datetime.datetime.now()
+        #     cur.execute("insert into logs values(?, ?, ?)", (action, details, timeNow))
 
-        logentry_id = "0"
-        logging.info("Logentry, action: {}, details: {}, entry_id: {}".format(action, details, logentry_id))
+        logging.basicConfig(filename='/opt/catdoor/runtime/run.log', level=logging.DEBUG, format='%(asctime)s %(message)s')
+        logging.info("Logentry, action: {}, details: {}".format(action, details))

@@ -1,12 +1,61 @@
 import cv2.cv as cv
 import time
 import uuid
+import sys
+from daemon import Daemon
+import smtplib
+import os
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEBase import MIMEBase
+from email.MIMEText import MIMEText
+from email.Utils import COMMASPACE, formatdate
+from email import Encoders
+
+
+
+
+class MyDaemon(Daemon):
+    def run(self):
+        t = Target()
+        t.run()
 
 
 class Target:
 
     def __init__(self):
         self.capture = cv.CaptureFromCAM(0)
+        # cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_FRAME_HEIGHT, 1280)
+        # cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_FRAME_WIDTH, 960)
+        # cv.SetCaptureProperty(self.capture, cv.CV_CAP_PROP_FORMAT, cv.IPL_DEPTH_32F)
+
+
+    def send_mail(self, send_from, send_to, subject, text, files=[]):
+        assert type(send_to)==list
+        assert type(files)==list
+
+        msg = MIMEMultipart()
+        msg['From'] = send_from
+        msg['To'] = COMMASPACE.join(send_to)
+        msg['Date'] = formatdate(localtime=True)
+        msg['Subject'] = subject
+
+        msg.attach( MIMEText(text) )
+
+        for f in files:
+            part = MIMEBase('application', "octet-stream")
+            part.set_payload( open(f,"rb").read() )
+            Encoders.encode_base64(part)
+            part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(f))
+            msg.attach(part)
+
+        smtp = smtplib.SMTP("smtp.live.com",587, timeout=120)
+        smtp.ehlo()
+        smtp.starttls() 
+        smtp.ehlo()
+        smtp.login("catdoor@balou.in", "Hirschbock123")
+
+        smtp.sendmail(send_from, send_to, msg.as_string())
+        smtp.close()
 
     def run(self):
         # Capture first frame to get size
@@ -61,6 +110,7 @@ class Target:
                 motionDetected = True
                 print "Motion detected, save to file..."
 
+
             while contour:
                 bound_rect = cv.BoundingRect(list(contour))
                 contour = contour.h_next()
@@ -79,11 +129,30 @@ class Target:
                 cv.Circle(color_image, center_point, 10, cv.CV_RGB(255, 100, 0), 1)
 
             if motionDetected:
-                cv.SaveImage("new/" + str(uuid.uuid1()) + ".jpg", color_image)
+                filename = "/opt/catdoor/camera/new/" + str(uuid.uuid1()) + ".jpg"
+                cv.SaveImage(filename, color_image)
+                # self.send_mail("catdoor@balou.in", ["marco.ms.schmid@gmail.com"], "Camera has detected a motion", "pic as attachment", [filename])
 
-            time.sleep(1)
+
+            time.sleep(2)
 
 
-if __name__=="__main__":
-    t = Target()
-    t.run()
+if __name__ == "__main__":
+    daemon = MyDaemon('/opt/catdoor/camera/daemon-camera.pid')
+    if len(sys.argv) == 2:
+        if 'start' == sys.argv[1]:
+            daemon.start()
+        elif 'stop' == sys.argv[1]:
+            daemon.stop()
+        elif 'restart' == sys.argv[1]:
+            # t = Target()
+            # t.run()
+
+            daemon.restart()
+        else:
+            print "Unknown command"
+            sys.exit(2)
+        sys.exit(0)
+    else:
+        print "usage: %s start|stop|restart" % sys.argv[0]
+        sys.exit(2)
