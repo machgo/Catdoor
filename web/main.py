@@ -2,9 +2,9 @@ from bottle import Bottle, run, static_file, request
 import json
 import datetime
 import os
+import sqlite3 as lite
 
 app = Bottle()
-
 
 @app.get('/')
 def hello():
@@ -12,22 +12,42 @@ def hello():
 
 @app.get('/door')
 def GetDoor():
-    f = open("/opt/catdoor/runtime/doorlock.state")
-    state = f.read()
-    f.close()
+    con = lite.connect("../runtime/catdoor.db")
 
-    ret = {"door_state": state}
+    with con:
+        cur = con.cursor()
+        cur.execute("select value from settings where key = 'doorstate'")
+
+        data = cur.fetchone()
+    ret = {"door_state": data[0]}
     return ret
 
 
 @app.put('/door')
 def PutDoor():
-    if request.forms.door_state == "locked":
-        os.system("python2 /opt/catdoor/tools/lockdoor.py")
-    else:
-        os.system("python2 /opt/catdoor/tools/unlockdoor.py")
+    con = lite.connect("../runtime/catdoor.db")
 
+    with con:
+        cur = con.cursor()
+        cur.execute("update settings set value=? where key =?", (request.forms.door_state, "doorstate"))
+        con.commit()
     return 0
+
+@app.get('/log')
+def GetLog():
+    con = lite.connect("../runtime/catdoor.db")
+
+    with con:
+        cur = con.cursor()
+        cur.execute("select * from logs order by time desc limit 20")
+
+        rows = cur.fetchall()
+
+        # column_names = [d[0] for d in cur.description]
+        #
+        # for row in cur:
+        #     info = dict(zip(column_names, row))
+        #     reply = json.dumps(info)
 
 
 def unix_time(dt):
