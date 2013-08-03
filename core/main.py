@@ -70,8 +70,11 @@ class MyDaemon(Daemon):
                         time.sleep(5)
 
                     hardw.closeDoor()
-                    hardw.resetMotionDetected()
                     database.writeLog("Door closed")
+                    time.sleep(3)
+                    hardw.resetMotionDetected()
+
+
 
                 else:
                     database.writeLog("Motion detected", "Door is locked")

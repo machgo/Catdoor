@@ -19,7 +19,6 @@ class MyDaemon(Daemon):
         t = Target()
         t.run()
 
-
 class Target:
 
     def __init__(self):
@@ -73,6 +72,9 @@ class Target:
 
             color_image = cv.QueryFrame(self.capture)
 
+            # For web-frontend
+            cv.SaveImage("/opt/catdoor/web/static/lastcampic.jpg", color_image)
+
             # Smooth to get rid of false positives
             cv.Smooth(color_image, color_image, cv.CV_GAUSSIAN, 3, 0)
 
@@ -109,6 +111,10 @@ class Target:
             if len(contour):
                 motionDetected = True
                 print "Motion detected, save to file..."
+                
+            if motionDetected:
+                filename = "/opt/catdoor/camera/new/" + str(uuid.uuid1()) + ".jpg"
+                cv.SaveImage(filename, color_image)
 
 
             while contour:
@@ -128,9 +134,7 @@ class Target:
                 cv.Circle(color_image, center_point, 20, cv.CV_RGB(255, 255, 255), 1)
                 cv.Circle(color_image, center_point, 10, cv.CV_RGB(255, 100, 0), 1)
 
-            if motionDetected:
-                filename = "/opt/catdoor/camera/new/" + str(uuid.uuid1()) + ".jpg"
-                cv.SaveImage(filename, color_image)
+
                 # self.send_mail("catdoor@balou.in", ["marco.ms.schmid@gmail.com"], "Camera has detected a motion", "pic as attachment", [filename])
 
 
