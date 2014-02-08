@@ -55,17 +55,15 @@
 			$.ajax(
 			{
 				type: "GET",
-				url: "/door",
+				url: "/DoorService/Door",
 				cache: false
 			}).done(function(json)
 			{
-				var date = new Date(json.last_update);
-
-				if (json.door_state == "locked")
+				if (json.Unlocked == false)
 				{
 					$("#catdoor-state").html("Catdoor ist geschlossen");
 				}
-				else if (json.door_state == "unlocked")
+				else if (json.Unlocked == true)
 				{
 					$("#catdoor-state").html("Catdoor ist offen");
 				}
@@ -110,16 +108,37 @@
 
 		function PutDoor()
 		{
-			$.ajax(
+			if ($("#door-flip").val() == "unlocked")
 			{
-				type: "PUT",
-				url: "/door",
-				data: { door_state: $("#door-flip").val() },
-				dataType: "json"
-			}).done(function(json)
+				$.ajax(
+				{
+					type: "POST",
+					url: "/DoorService/Door",
+					data: { "Unlocked": true },
+					dataType: "json",
+					contentType: "application/json" 
+				}).done(function(json)
+				{
+					UpdateDoor();
+				});				
+			}
+
+			else
 			{
-				UpdateDoor();
-			});
+				$.ajax(
+				{
+					type: "POST",
+					url: "/DoorService/Door",
+					data: { "Unlocked": false },
+					dataType: "json",
+					contentType: "application/json" 
+				}).done(function(json)
+				{
+					UpdateDoor();
+				});				
+			}
+
+
 		}
 
 		$( document ).bind( 'mobileinit', function()
@@ -147,7 +166,7 @@
 			$.mobile.loading( 'show' );
 			// UpdateBalou();
 			UpdateDoor();
-			UpdateLog();
+			//UpdateLog();
 			// UpdateSchedule();
 			$.mobile.loading( 'hide' );
 		});

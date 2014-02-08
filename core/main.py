@@ -12,7 +12,7 @@ class MyDaemon(Daemon):
     def run(self):
 
         hardw.activateWatchdog()
-        database.writeLog("Watchdog started")
+        database.writeLog("Watchdog started", 1001)
 
         while True:
             time.sleep(0.5)
@@ -40,44 +40,45 @@ class MyDaemon(Daemon):
 
             if len(os.listdir("/opt/catdoor/camera/new/")):
                 if database.getDoorLockState():
-                    database.writeLog("Camera-Pic found")
+                    database.writeLog("Camera-Pic found", 1011)
                     hardw.openDoor()
-                    os.system('mv /opt/catdoor/camera/new/* /opt/catdoor/camera/old/')
-                    database.writeLog("Door opened")
+                    
+                    database.writeLog("Door opened", 1021)
                     time.sleep(5)
+                    os.system('rm /opt/catdoor/camera/new/*')
 
                     while len(os.listdir("/opt/catdoor/camera/new/")):
-                        os.system('mv /opt/catdoor/camera/new/* /opt/catdoor/camera/old/')
                         time.sleep(5)
+                        os.system('rm /opt/catdoor/camera/new/*')
 
                     hardw.closeDoor()
                     hardw.resetMotionDetected()
-                    database.writeLog("Door closed")
+                    database.writeLog("Door closed", 1022)
 
 
                 else:
-                    database.writeLog("Camera-Pic found", "Door is locked")
+                    database.writeLog("Camera-Pic found", 1012)
                     os.system('mv /opt/catdoor/camera/new/* /opt/catdoor/camera/old/')
 
 
             if hardw.isMotionDetected():
                 if database.getDoorLockState():
-                    database.writeLog("Motion detected", "Door is unlocked")
+                    database.writeLog("Motion detected", 1031)
                     hardw.openDoor()
-                    database.writeLog("Door opened")
+                    database.writeLog("Door opened", 1021)
                     time.sleep(10)
                     while hardw.isMotionDetected():
                         time.sleep(5)
 
                     hardw.closeDoor()
-                    database.writeLog("Door closed")
+                    database.writeLog("Door closed", 1022)
                     time.sleep(3)
                     hardw.resetMotionDetected()
 
 
 
                 else:
-                    database.writeLog("Motion detected", "Door is locked")
+                    database.writeLog("Motion detected", 1032)
 
             time.sleep(0.5)
 

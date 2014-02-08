@@ -1,27 +1,35 @@
 import datetime
 import logging
-import sqlite3 as lite
+import requests
+import json
 
 
 class catdoorDB:
+    def __init__(self):
+        self.lastDoorState = False
+
+
     def getDoorLockState(self):
-        con = lite.connect("/opt/catdoor/runtime/catdoor.db")
+        headers = {'content-type': 'application/json'}
 
-        with con:
-            cur = con.cursor()
-            cur.execute("select value from settings where key = 'doorstate'")
+        try:
+            r = requests.get("http://echo.home.balou.in:9321/DoorService/Door", timeout=2.0, headers=headers)
+            obj = r.json()
+            self.lastDoorState = obj['Unlocked']
 
-            data = cur.fetchone()
-            
-            if data[0] == "unlocked":
-                return True
-            else:
-                return False
+            return obj['Unlocked']
 
-    def writeLog(self, action, details='no details'):
-        con = lite.connect("/opt/catdoor/runtime/catdoor.db")
+        except requests.exceptions.RequestException as e:
+            return self.lastDoorState
 
-        with con:
-            cur = con.cursor()
-            timeNow = datetime.datetime.now()
-            cur.execute("insert into logs values(?, ?, ?)", (timeNow, action, details))
+
+    def writeLog(self, message, eventNumber=0):
+        payload = {"Title": "core","Message": message, "EventNumber": eventNumber}
+        headers = {'content-type': 'application/json'}
+
+        print payload
+
+        try:
+            r = requests.post("http://echo.home.balou.in:9321/DoorService/LogEntries", timeout=2.0, data=json.dumps(payload), headers=headers)
+        except requests.exceptions.RequestException as e:
+            print e
