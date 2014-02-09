@@ -3,14 +3,16 @@
 <head> 
 	<title>Balous Catdoor</title> 
 	<meta name="viewport" content="width=device-width, initial-scale=1"> 
-	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.3.0-beta.1/jquery.mobile-1.3.0-beta.1.min.css" />
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.0/jquery.mobile-1.4.0.min.css" />
+	<link rel="stylesheet" href="swipebox.css">
 
 	<style type="text/css" media="screen">
 			.containing-element .ui-slider-switch { width: 12em; }
 	</style>
 
-	<script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
-	<script src="http://code.jquery.com/mobile/1.3.0-beta.1/jquery.mobile-1.3.0-beta.1.min.js"></script>
+	<script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.4.0/jquery.mobile-1.4.0.min.js"></script>
+	<script src="jquery.swipebox.js"></script>
 
 	<script>
 
@@ -27,29 +29,6 @@
 			return hours + ":" + minutes
 		}
 
-		function UpdateBalou()
-		{
-			$.ajax(
-			{
-				type: "GET",
-				url: "/balou",
-				cache: false
-			}).done(function(json)
-			{
-				var date = new Date(json.last_update);
-
-				if (json.balou_state == "indoor")
-				{
-					$("#balou-state").html("Balou ist zuhause seit ");
-				}
-				else if (json.balou_state == "outdoor")
-				{
-					$("#balou-state").html("Balou ist draussen seit ");
-				}
-				$("#balou-state").append(GetFormatedTimeString(date) + " Uhr");
-			});
-		}
-
 		function UpdateDoor()
 		{
 			$.ajax(
@@ -62,14 +41,20 @@
 				if (json.Unlocked == false)
 				{
 					$("#catdoor-state").html("Catdoor ist geschlossen");
+					$("#door-flip").val("locked").slider('refresh');
 				}
 				else if (json.Unlocked == true)
 				{
 					$("#catdoor-state").html("Catdoor ist offen");
+					$("#door-flip").val("unlocked").slider('refresh');
 				}
-
-				$("#door-flip").val(json.door_state).slider('refresh');
 			});
+		}
+
+		function timeConvert(date){
+		    var miliseconds = date.replace(/(^.*\()|([+-].*$)/g, '');
+		    miliseconds = parseInt(miliseconds);
+		    return new Date(miliseconds);
 		}
 
 		function UpdateLog()
@@ -77,33 +62,17 @@
 			$.ajax(
 			{
 				type: "GET",
-				url: "/log",
+				url: "/DoorService/LogEntries",
 				cache: false
 			}).done(function(json)
 			{				
 				$(json).each(function(index){
-					$('[data-role="listview"]').append('<li id="listitem">' + this.time + ": " + this.name + ", " + this.description + '</li>');
+					var date = timeConvert(this.TimeStamp)
+
+					$('[data-role="listview"]').append('<li id="listitem">' + date + ": " + this.Title + ", " + this.Message + '</li>');
 				});
 				$('[data-role="listview"]').listview('refresh');
 			})
-		}
-
-		function UpdateSchedule()
-		{
-			$.ajax(
-			{
-				type: "GET",
-				url: "/schedule",
-				cache: false
-			}).done(function(json)
-			{
-				var opentime = new Date(json.opentime);
-				var closetime = new Date(json.closetime);
-
-				$("#schedule").html("Nach Plan ist Catdoor heute von ");
-				$("#schedule").append(GetFormatedTimeString(opentime) + " Uhr");
-				$("#schedule").append(" bis " + GetFormatedTimeString(closetime) + " Uhr offen.");
-			});
 		}
 
 		function PutDoor()
@@ -114,7 +83,7 @@
 				{
 					type: "POST",
 					url: "/DoorService/Door",
-					data: { "Unlocked": true },
+					data: '{ "Unlocked": true }',
 					dataType: "json",
 					contentType: "application/json" 
 				}).done(function(json)
@@ -129,7 +98,7 @@
 				{
 					type: "POST",
 					url: "/DoorService/Door",
-					data: { "Unlocked": false },
+					data: '{ "Unlocked": false }',
 					dataType: "json",
 					contentType: "application/json" 
 				}).done(function(json)
@@ -137,8 +106,6 @@
 					UpdateDoor();
 				});				
 			}
-
-
 		}
 
 		$( document ).bind( 'mobileinit', function()
@@ -151,11 +118,13 @@
 
 		$(document).ready(function()
 		{
+			jQuery(function($) {
+				$(".swipebox").swipebox();
+			});
+
 			setInterval(function()
 			{
-				// UpdateBalou();
 				UpdateDoor();
-				// UpdateSchedule();
 			}, 10000);
 
 			$("#door-flip").bind("change", function(event, ui)
@@ -163,10 +132,26 @@
 				PutDoor();
 			});
 
+			$("#galleryButton").click(function(event){
+				event.preventDefault();
+
+				$.ajax(
+				{
+					type: "GET",
+					url: "/DoorService/Pictures",
+					cache: false
+				}).done(function(json)
+				{
+					$.swipebox(json.lastPics);
+				});
+			});
+
+
+
 			$.mobile.loading( 'show' );
 			// UpdateBalou();
 			UpdateDoor();
-			//UpdateLog();
+			UpdateLog();
 			// UpdateSchedule();
 			$.mobile.loading( 'hide' );
 		});
@@ -183,9 +168,7 @@
 
 	<div data-role="content">	
 		<h2>Status</h2>
-		<p id="balou-state"></p>
 		<p id="catdoor-state"></p>
-		<p id="schedule"></p>
 
 		<h2>Einstellungen</h2>		
 		<div class="containing-element">
@@ -194,7 +177,10 @@
 				<option value="unlocked">Offen</option>
 			</select>
 		</div>
-		<h2>Event Log</h2>
+		<h2>Fotos und Events</h2>
+		<div data-role="containing-element">
+			<input type="button" id="galleryButton" value="Gallery"/>
+		</div>
 		<div data-role="fieldcontain">
     		<ul id="logs" data-role="listview" data-divider-theme="b" data-inset="true"></ul>
 		</div>
