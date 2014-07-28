@@ -6,6 +6,8 @@ import time
 import db
 import sys
 import atexit
+import logging
+import traceback
 from daemon import Daemon
 
 class MyDaemon(Daemon):
@@ -83,13 +85,31 @@ class MyDaemon(Daemon):
             time.sleep(0.5)
 
 
+def log_uncaught_exceptions(ex_cls, ex, tb):
+
+    logging.critical(''.join(traceback.format_tb(tb)))
+    logging.critical('{0}: {1}'.format(ex_cls, ex))
+
+
 if __name__ == "__main__":
+
+    logging.basicConfig(
+            level=logging.DEBUG,
+            filename='/tmp/catdoorcore.log',
+            filemode='w')
+
+    sys.excepthook = log_uncaught_exceptions
+
     daemon = MyDaemon('/opt/catdoor/core/daemon-catdoor.pid')
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
+            logging.debug('Starting Database...')
             database = db.catdoorDB()
+            logging.debug('Starting Hardware...')
             hardw = hardware.Hardware()
+            logging.debug('Starting Daemon...')
             daemon.start()
+            logging.debug('All started.')
         elif 'stop' == sys.argv[1]:
             daemon.stop()
         elif 'restart' == sys.argv[1]:

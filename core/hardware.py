@@ -2,6 +2,7 @@ from ConfigParser import SafeConfigParser
 import threading
 import time
 import RPi.GPIO as GPIO
+import logging
 
 class WatchdogThread(threading.Thread):
     def __init__(self, hardware):
@@ -27,13 +28,15 @@ class Hardware:
     motionDetectedBool = False
 
     def __init__(self):
-
+        logging.debug('Loading Config....')
         self.loadConfig()
+        logging.debug('Hardware init...')
         self.initializeHardware()
+        logging.debug('Hardware ready.')
 
     def loadConfig(self):
         parser = SafeConfigParser()
-        parser.read('config.ini')
+        parser.read('/opt/catdoor/core/config.ini')
 
         self.pin_irsensor_in = parser.getint('pin_settings', 'irsensor_in')
         self.pin_buzzer_out = parser.getint('pin_settings', 'buzzer_out')
