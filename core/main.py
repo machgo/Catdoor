@@ -60,7 +60,7 @@ class MyDaemon(Daemon):
 
                 else:
                     database.writeLog("Camera-Pic found", 1012)
-                    os.system('mv /var/lib/motion/* /opt/Catdoor/camera/old/')
+                    os.system('rm /var/lib/motion/*')
 
 
             if hardw.isMotionDetected():
