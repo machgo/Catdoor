@@ -60,7 +60,7 @@ class MyDaemon(Daemon):
 
                 else:
                     database.writeLog("Camera-Pic found", 1012)
-                    os.system('mv /var/lib/motion/* /opt/catdoor/camera/old/')
+                    os.system('mv /var/lib/motion/* /opt/Catdoor/camera/old/')
 
 
             if hardw.isMotionDetected():
@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
     sys.excepthook = log_uncaught_exceptions
 
-    daemon = MyDaemon('/opt/catdoor/core/daemon-catdoor.pid')
+    daemon = MyDaemon('/opt/Catdoor/core/daemon-catdoor.pid')
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
             logging.debug('Starting Database...')

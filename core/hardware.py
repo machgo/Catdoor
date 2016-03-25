@@ -37,7 +37,7 @@ class Hardware:
 
     def loadConfig(self):
         parser = SafeConfigParser()
-        parser.read('/opt/catdoor/core/config.ini')
+        parser.read('/opt/Catdoor/core/config.ini')
 
         self.pin_irsensor_in = parser.getint('pin_settings', 'irsensor_in')
         self.pin_buzzer_out = parser.getint('pin_settings', 'buzzer_out')
