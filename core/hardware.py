@@ -60,24 +60,14 @@ class Hardware:
         GPIO.output(self.pin_buzzer_out, GPIO.LOW)
         GPIO.setwarnings(True)
 
-    def doStep(self,delay):
-        #GPIO.output(self.pin_step_out, GPIO.HIGH)
-        time.sleep(delay)
-        #GPIO.output(self.pin_step_out, GPIO.LOW)
-        time.sleep(delay)
-
     def openDoor(self):
         steps = self.motor_distance
-        self.myStepper.step(steps, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)
-        for i in range(0, steps):
-            self.doStep(self.motor_delay)
+        self.myStepper.step(steps, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)
 
     def closeDoor(self):
         self.doShortBeeps(5)
         steps = self.motor_distance
-        self.myStepper.step(steps, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)
-        for i in range(0, steps):
-            self.doStep(self.motor_delay)
+        self.myStepper.step(steps, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)
 
     def doShortBeeps(self, num):
         for i in range(0, num):
