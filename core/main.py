@@ -40,18 +40,18 @@ class MyDaemon(Daemon):
             # f.close()
 
 
-            if len(os.listdir("/opt/catdoor/camera/new/")):
+            if len(os.listdir("/var/lib/motion/")):
                 if database.getDoorLockState():
                     database.writeLog("Camera-Pic found", 1011)
                     hardw.openDoor()
                     
                     database.writeLog("Door opened", 1021)
                     time.sleep(5)
-                    os.system('rm /opt/catdoor/camera/new/*')
+                    os.system('rm /var/lib/motion/*')
 
-                    while len(os.listdir("/opt/catdoor/camera/new/")):
+                    while len(os.listdir("/var/lib/motion/")):
                         time.sleep(5)
-                        os.system('rm /opt/catdoor/camera/new/*')
+                        os.system('rm /var/lib/motion/*')
 
                     hardw.closeDoor()
                     hardw.resetMotionDetected()
@@ -60,7 +60,7 @@ class MyDaemon(Daemon):
 
                 else:
                     database.writeLog("Camera-Pic found", 1012)
-                    os.system('mv /opt/catdoor/camera/new/* /opt/catdoor/camera/old/')
+                    os.system('mv /var/lib/motion/* /opt/catdoor/camera/old/')
 
 
             if hardw.isMotionDetected():

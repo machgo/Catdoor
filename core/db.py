@@ -8,7 +8,6 @@ class catdoorDB:
     def __init__(self):
         self.lastDoorState = False
 
-
     def getDoorLockState(self):
         headers = {'content-type': 'application/json'}
 
@@ -33,3 +32,15 @@ class catdoorDB:
             r = requests.post("http://echo.home.balou.in:9321/DoorService/LogEntries", timeout=2.0, data=json.dumps(payload), headers=headers)
         except requests.exceptions.RequestException as e:
             print e
+
+    def uploadImage(self, fileName, filePath):
+        f = open(filePath, "rb")
+        data = f.read()
+        UU = data.encode("base64")
+        payload = {"FileName": filename,"Data": UU}
+        headers = {'content-type': 'application/json'}
+        try:
+            r = requests.post("http://echo.home.balou.in:9321/DoorService/Pictures", timeout=2.0, data=json.dumps(payload), headers=headers)
+        except requests.exceptions.RequestException as e:
+            print e
+
