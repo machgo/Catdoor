@@ -19,27 +19,7 @@ class MyDaemon(Daemon):
         while True:
             time.sleep(0.5)
             now = datetime.datetime.now()
-
-            # if hardw.isSerialPending():
-            #     detectedSerial = hardw.getPendingSerial()
-            #     database.writeLog("Tag detected", "Serial: {}".format(detectedSerial))
-            #
-            #     #if detectedSerial == '756_098100641037': #for exact check of the chip-sn
-            #     hardw.openDoor()
-            #     database.writeLog("Door opened")
-            #     time.sleep(10)
-            #     while hardw.isMotionDetected():
-            #         time.sleep(5)
-            #
-            #     hardw.closeDoor()
-            #     database.writeLog("Door closed")
-            # database.writeLog("checking motion")
-
-            # f = open("../runtime/doorlock.state", 'r')
-            # state = f.read()
-            # f.close()
-
-
+            
             if len(os.listdir("/var/lib/motion/")):
                 if database.getDoorLockState():
                     database.writeLog("Camera-Pic found", 1011)
