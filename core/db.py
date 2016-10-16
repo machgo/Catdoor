@@ -7,14 +7,15 @@ import json
 class catdoorDB:
     def __init__(self):
         self.lastDoorState = False
+        self.serverurl = "http://rancherapp.home.balou.in:3203/api/"
 
     def getDoorLockState(self):
         headers = {'content-type': 'application/json'}
 
         try:
-            r = requests.get("http://echo.home.balou.in:9321/DoorService/Door", timeout=2.0, headers=headers)
+            r = requests.get(self.serverurl+"door", timeout=2.0, headers=headers)
             obj = r.json()
-            self.lastDoorState = obj['Unlocked']
+            self.lastDoorState = obj['unlocked']
 
             return obj['Unlocked']
 
@@ -23,24 +24,26 @@ class catdoorDB:
 
 
     def writeLog(self, message, eventNumber=0):
-        payload = {"Title": "core","Message": message, "EventNumber": eventNumber}
+        payload = {"sender": "core","name": message}
         headers = {'content-type': 'application/json'}
 
-        print payload
+        try:
+            r = requests.post(self.serverurl+"events", timeout=2.0, data=json.dumps(payload), headers=headers)
+            obj = r.json()
+            return obj['_id']       
+        except requests.exceptions.RequestException as e:
+            print(e)
+
+    def uploadImage(self, filePath):
+
+        id = self.writeLog("New Picture") 
+        print(id)
+
+        with open(filePath, "rb") as f:
+            byte = f.read()
 
         try:
-            r = requests.post("http://echo.home.balou.in:9321/DoorService/LogEntries", timeout=2.0, data=json.dumps(payload), headers=headers)
+            r = requests.post(self.serverurl+"uploads/"+id, timeout=2.0, data=byte, headers={'Content-Type': 'application/octet-stream'})
         except requests.exceptions.RequestException as e:
-            print e
-
-    def uploadImage(self, fileName, filePath):
-        f = open(filePath, "rb")
-        data = f.read()
-        UU = data.encode("base64")
-        payload = {"FileName": filename,"Data": UU}
-        headers = {'content-type': 'application/json'}
-        try:
-            r = requests.post("http://echo.home.balou.in:9321/DoorService/Pictures", timeout=2.0, data=json.dumps(payload), headers=headers)
-        except requests.exceptions.RequestException as e:
-            print e
+            print (e)
 
