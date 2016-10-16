@@ -17,7 +17,7 @@ class catdoorDB:
             obj = r.json()
             self.lastDoorState = obj['unlocked']
 
-            return obj['Unlocked']
+            return obj['unlocked']
 
         except requests.exceptions.RequestException as e:
             return self.lastDoorState

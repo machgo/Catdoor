@@ -21,6 +21,7 @@ class MyDaemon(Daemon):
             now = datetime.datetime.now()
             
             if len(os.listdir("/var/lib/motion/")):
+                database.uploadImage("/var/lib/motion/"+os.listdir("/var/lib/motion")[0])
                 if database.getDoorLockState():
                     database.writeLog("Camera-Pic found", 1011)
                     hardw.openDoor()
