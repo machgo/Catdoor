@@ -22,13 +22,11 @@ class MyDaemon(Daemon):
             
             if len(os.listdir("/var/lib/motion/")):
                 database.uploadImage("/var/lib/motion/"+os.listdir("/var/lib/motion")[0])
+                os.system('rm /var/lib/motion/*')
                 if database.getDoorLockState():
-                    database.writeLog("Camera-Pic found", 1011)
-                    hardw.openDoor()
-                    
+                    hardw.openDoor()                    
                     database.writeLog("Door opened", 1021)
                     time.sleep(5)
-                    os.system('rm /var/lib/motion/*')
 
                     while len(os.listdir("/var/lib/motion/")):
                         time.sleep(5)
@@ -37,12 +35,6 @@ class MyDaemon(Daemon):
                     hardw.closeDoor()
                     hardw.resetMotionDetected()
                     database.writeLog("Door closed", 1022)
-
-
-                else:
-                    database.writeLog("Camera-Pic found", 1012)
-                    os.system('rm /var/lib/motion/*')
-
 
             if hardw.isMotionDetected():
                 if database.getDoorLockState():
@@ -58,13 +50,10 @@ class MyDaemon(Daemon):
                     time.sleep(3)
                     hardw.resetMotionDetected()
 
-
-
                 else:
                     database.writeLog("Motion detected", 1032)
 
             time.sleep(0.5)
-
 
 def log_uncaught_exceptions(ex_cls, ex, tb):
 
