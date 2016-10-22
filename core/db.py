@@ -7,7 +7,7 @@ import json
 class catdoorDB:
     def __init__(self):
         self.lastDoorState = False
-        self.serverurl = "http://rancherapp.home.balou.in:3203/api/"
+        self.serverurl = "http://kubeapp.home.balou.in:32003/api/"
 
     def getDoorLockState(self):
         headers = {'content-type': 'application/json'}

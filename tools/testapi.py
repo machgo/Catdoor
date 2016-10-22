@@ -6,7 +6,7 @@ import json
 class testApi:
     def __init__(self):
         self.lastDoorState = False
-        self.serverurl = "http://rancherapp.home.balou.in:3203/api/"
+        self.serverurl = "http://kubeapp.home.balou.in:3203/api/"
         # self.serverurl = "http://localhost:8080/api/"
 
     def getDoorLockState(self):
