@@ -16,6 +16,9 @@ class WatchdogThread(threading.Thread):
             if GPIO.input(self.hardware.pin_irsensor_in):
                 self.hardware.motionDetectedBool = True
 
+            if GPIO.input(self.hardware.pin_irsensor2_in):
+                self.hardware.motionDetectedBool = True
+
             if self.exitFlag:
                 break
 
@@ -40,6 +43,7 @@ class Hardware:
         parser.read('/opt/Catdoor/core/config.ini')
 
         self.pin_irsensor_in = parser.getint('pin_settings', 'irsensor_in')
+        self.pin_irsensor2_in = parser.getint('pin_settings', 'irsensor2_in')
         self.pin_buzzer_out = parser.getint('pin_settings', 'buzzer_out')
 
         self.motor_delay = parser.getfloat('motor_settings', 'delay')
@@ -48,13 +52,14 @@ class Hardware:
     def initializeHardware(self):
         self.mh = Adafruit_MotorHAT()
         self.myStepper = self.mh.getStepper(200,1)
-        self.myStepper.setSpeed(200)
+        self.myStepper.setSpeed(330)
 
         GPIO.setwarnings(False)
         GPIO.cleanup()
         GPIO.setmode(GPIO.BCM)
 
         GPIO.setup(self.pin_irsensor_in, GPIO.IN)
+	GPIO.setup(self.pin_irsensor2_in, GPIO.IN)
         GPIO.setup(self.pin_buzzer_out, GPIO.OUT)
 
         GPIO.output(self.pin_buzzer_out, GPIO.LOW)
