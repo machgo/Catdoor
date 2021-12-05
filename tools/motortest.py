@@ -78,22 +78,22 @@ distance = 725
 mot = Motor()
 mot.initializeHardware()
 
-# print "doing 1/1 steps"
+# print ("doing 1/1 steps")
 # mot.setFullStepMode()
 # mot.openAndCloseDoor(distance*1, delay/1)
 # time.sleep(2)
 
-# print "doing 1/2 steps"
+# print ("doing 1/2 steps")
 # mot.setHalfStepMode()
 # mot.openAndCloseDoor(distance*2, delay/2)
 # time.sleep(2)
 
-print "doing 1/4 steps"
+print ("doing 1/4 steps")
 mot.setQuarterStepMode()
 mot.openAndCloseDoor(distance*4, delay/4)
 time.sleep(2)
 
-print "doing 1/8 steps"
+print ("doing 1/8 steps")
 mot.setEighthStepMode()
 mot.openAndCloseDoor(distance*8, delay/8)
 time.sleep(2)

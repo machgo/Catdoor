@@ -20,22 +20,6 @@ class MyDaemon(Daemon):
             time.sleep(0.5)
             now = datetime.datetime.now()
             
-            if len(os.listdir("/var/lib/motion/")):
-                database.uploadImage("/var/lib/motion/"+os.listdir("/var/lib/motion")[0])
-                os.system('rm /var/lib/motion/*')
-                if database.getDoorLockState():
-                    hardw.openDoor()                    
-                    database.writeLog("Door opened", 1021)
-                    time.sleep(5)
-
-                    while len(os.listdir("/var/lib/motion/")):
-                        time.sleep(5)
-                        os.system('rm /var/lib/motion/*')
-
-                    hardw.closeDoor()
-                    hardw.resetMotionDetected()
-                    database.writeLog("Door closed", 1022)
-
             if hardw.isMotionDetected():
                 if database.getDoorLockState():
                     database.writeLog("Motion detected", 1031)
@@ -64,7 +48,7 @@ def log_uncaught_exceptions(ex_cls, ex, tb):
 if __name__ == "__main__":
 
     logging.basicConfig(
-            level=logging.DEBUG,
+            level=logging.WARNING,
             filename='/tmp/catdoorcore.log',
             filemode='w')
 
@@ -88,9 +72,9 @@ if __name__ == "__main__":
 
             daemon.restart()
         else:
-            print "Unknown command"
+            print("Unknown command")
             sys.exit(2)
         sys.exit(0)
     else:
-        print "usage: %s start|stop|restart" % sys.argv[0]
+        print(("usage: %s start|stop|restart" % sys.argv[0]))
         sys.exit(2)

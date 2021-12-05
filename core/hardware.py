@@ -1,5 +1,5 @@
 from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor, Adafruit_StepperMotor
-from ConfigParser import SafeConfigParser
+from configparser import SafeConfigParser
 import threading
 import time
 import RPi.GPIO as GPIO
@@ -52,14 +52,14 @@ class Hardware:
     def initializeHardware(self):
         self.mh = Adafruit_MotorHAT()
         self.myStepper = self.mh.getStepper(200,1)
-        self.myStepper.setSpeed(330)
+        self.myStepper.setSpeed(255)
 
         GPIO.setwarnings(False)
         GPIO.cleanup()
         GPIO.setmode(GPIO.BCM)
 
         GPIO.setup(self.pin_irsensor_in, GPIO.IN)
-	GPIO.setup(self.pin_irsensor2_in, GPIO.IN)
+        GPIO.setup(self.pin_irsensor2_in, GPIO.IN)
         GPIO.setup(self.pin_buzzer_out, GPIO.OUT)
 
         GPIO.output(self.pin_buzzer_out, GPIO.LOW)
@@ -67,12 +67,12 @@ class Hardware:
 
     def openDoor(self):
         steps = self.motor_distance
-        self.myStepper.step(steps, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.DOUBLE)
+        self.myStepper.step(steps, Adafruit_MotorHAT.FORWARD, Adafruit_MotorHAT.INTERLEAVE)
 
     def closeDoor(self):
         self.doShortBeeps(5)
         steps = self.motor_distance
-        self.myStepper.step(steps, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.DOUBLE)
+        self.myStepper.step(steps, Adafruit_MotorHAT.BACKWARD, Adafruit_MotorHAT.INTERLEAVE)
 
     def doShortBeeps(self, num):
         for i in range(0, num):
